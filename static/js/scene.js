@@ -16,6 +16,14 @@ const DEFAULT_CONFIG = {
 };
 
 function readInitialConfig() {
+    if (document.documentElement.dataset.static === "true") {
+        try {
+            const saved = localStorage.getItem("rwn-config");
+            if (saved) return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+        } catch {
+            // Fall through to embedded config
+        }
+    }
     const el = document.getElementById("initial-config");
     if (!el) return { ...DEFAULT_CONFIG };
     try {
@@ -364,9 +372,11 @@ async function boot() {
     composer.addPass(new OutputPass());
 
     // 2. Load Compiled Rust WASM Zero-Copy Sculpted Mesh & Stress Kernel
+    const isStaticHost = document.documentElement.dataset.static === "true";
+    const wasmUrl = document.documentElement.dataset.wasmUrl || "/wasm/rustwithnerco_wasm.wasm";
     let kernel;
     try {
-        kernel = await RustMeshBridge.load("/wasm/rustwithnerco_wasm.wasm");
+        kernel = await RustMeshBridge.load(wasmUrl);
     } catch (err) {
         console.error("Rust WASM kernel failed:", err);
         const hdrSize = document.getElementById("hdr-wasm-size");
@@ -830,6 +840,12 @@ async function boot() {
     const btnResetDefaults = document.getElementById("btn-reset-defaults");
 
     async function pollHealth() {
+        if (isStaticHost) {
+            if (saveFeedback) {
+                saveFeedback.textContent = "Static GitHub Pages build · Rust WASM live in browser";
+            }
+            return;
+        }
         try {
             const res = await fetch("/api/health");
             if (!res.ok) return;
@@ -843,6 +859,18 @@ async function boot() {
     pollHealth();
 
     btnSaveAxum?.addEventListener("click", async () => {
+        if (isStaticHost) {
+            try {
+                localStorage.setItem("rwn-config", JSON.stringify(config));
+                if (saveFeedback) {
+                    saveFeedback.textContent = `Saved (${config.material_slug} · turb ${config.turbulence.toFixed(2)}) in browser storage`;
+                }
+                announce("Sculpture configuration saved in browser storage");
+            } catch {
+                if (saveFeedback) saveFeedback.textContent = "Browser storage unavailable";
+            }
+            return;
+        }
         btnSaveAxum.disabled = true;
         if (saveFeedback) saveFeedback.textContent = "Saving state to Axum server...";
         try {
