@@ -1,0 +1,8 @@
+[package]
+name = "rustwithnerco-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "Zero-copy Rust WebAssembly 3D mesh morphing, normal, and surface stress kernel for RustwithNerco"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

@@ -1,0 +1,15 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Compiled WASM output (rebuilt via build.ps1 or cargo)
+# Keep directory, optionally commit or ignore built artifact — tracked via build script
+/static/wasm/*.wasm
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+.env

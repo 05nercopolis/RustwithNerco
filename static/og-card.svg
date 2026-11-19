@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#08080a"/>
+  <circle cx="840" cy="315" r="210" stroke="#f2eee8" stroke-opacity="0.16" stroke-width="1.5"/>
+  <ellipse cx="840" cy="315" rx="250" ry="96" transform="rotate(-28 840 315)" stroke="#e4502f" stroke-width="2.5"/>
+  <circle cx="840" cy="315" r="128" fill="#141418" stroke="#e4502f" stroke-opacity="0.55" stroke-width="2"/>
+  <text x="84" y="290" fill="#f2eee8" font-family="sans-serif" font-weight="800" font-size="84" letter-spacing="-3">RUSTWITH</text>
+  <text x="84" y="378" fill="#e4502f" font-family="sans-serif" font-weight="700" font-size="84" letter-spacing="-3">NERCO.</text>
+  <text x="88" y="438" fill="#a9a49d" font-family="sans-serif" font-size="24">Digital metallurgy in real time — Rust WASM + Three.js + Axum</text>
+</svg>

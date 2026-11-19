@@ -1,0 +1,816 @@
+/* ==========================================================================
+   RustwithNerco — 3D Cinema Stage, X-Ray Split Curtain & 4-Chapter Scroll
+   ========================================================================== */
+
+.webgl-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(
+        ellipse 72% 62% at 64% 48%,
+        oklch(19% 0.018 36 / 0.40) 0%,
+        oklch(13% 0.006 270) 68%
+    );
+    cursor: grab;
+    touch-action: pan-y;
+}
+
+.webgl-stage.is-orbiting {
+    cursor: grabbing;
+}
+
+.webgl-stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Boot Status & WebGL/WASM Recovery Fallback */
+.stage-fallback {
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: oklch(13% 0.006 270 / 0.94);
+}
+
+.stage-fallback[hidden] {
+    display: none;
+}
+
+.fallback-box {
+    max-width: 460px;
+    padding: 28px;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.fallback-box h2 {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.fallback-box p {
+    margin: 0 0 20px;
+    color: var(--ink-secondary);
+}
+
+.fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Mobile Hairline Scroll Progress Bar */
+.mobile-progress {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 48;
+    background: var(--rule);
+    display: none;
+}
+
+.mobile-progress-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--accent);
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+/* ==========================================================================
+   Draggable WASM X-Ray Split Curtain (Forged Metal <-> Raw Rust Mesh)
+   ========================================================================== */
+
+.xray-divider {
+    position: fixed;
+    top: var(--header-h);
+    bottom: 68px;
+    left: 50%;
+    z-index: 32;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--accent);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.24s var(--ease-expo);
+}
+
+.xray-divider.is-active {
+    opacity: 1;
+}
+
+.xray-handle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-height: 44px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--accent);
+    border-radius: 99px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.xray-handle:hover {
+    background: var(--surface);
+}
+
+.xray-tag-metal {
+    color: var(--ink-secondary);
+}
+
+.xray-tag-wasm {
+    color: var(--accent);
+}
+
+/* ==========================================================================
+   Right-Edge Unified Chapter Rail (Single Canonical Taxonomy)
+   ========================================================================== */
+
+.chapter-rail {
+    position: fixed;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 10px 16px 10px 12px;
+    background: radial-gradient(
+        ellipse at right center,
+        oklch(13% 0.006 270 / 0.76) 0%,
+        transparent 75%
+    );
+}
+
+.rail-track {
+    position: absolute;
+    top: 12px;
+    right: 0;
+    bottom: 12px;
+    width: 2px;
+    background: var(--rule);
+}
+
+.rail-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--accent);
+    transform-origin: top center;
+    transform: scaleY(0);
+}
+
+.rail-stop {
+    position: relative;
+    min-height: 44px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s var(--ease-expo), transform 0.2s var(--ease-expo);
+}
+
+.rail-stop:hover {
+    color: var(--ink);
+}
+
+.rail-stop.is-active {
+    color: oklch(75% 0.18 38);
+    transform: translateX(-4px);
+}
+
+/* ==========================================================================
+   Bottom Studio Bar (Auto-Recedes in Chapter 3 Forge to Avoid Duplication)
+   ========================================================================== */
+
+.studio-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 35;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 36px 12px;
+    background: linear-gradient(
+        to top,
+        oklch(13% 0.006 270 / 0.96) 62%,
+        oklch(13% 0.006 270 / 0.0) 100%
+    );
+    pointer-events: none;
+    transition: opacity 0.28s var(--ease-expo), transform 0.28s var(--ease-expo);
+}
+
+.studio-dock.is-receded {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+.studio-dock.is-receded .dock-materials,
+.studio-dock.is-receded .dock-actions {
+    pointer-events: none;
+}
+
+.studio-dock::before {
+    content: "";
+    position: absolute;
+    left: 36px;
+    right: 36px;
+    top: 8px;
+    height: 1px;
+    background: var(--rule);
+}
+
+.dock-materials,
+.dock-actions {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dock-tab {
+    position: relative;
+    min-height: 44px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.18s var(--ease-expo);
+}
+
+.dock-tab:hover,
+.dock-tab[aria-pressed="true"] {
+    color: var(--ink);
+}
+
+.dock-tab[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.dock-btn {
+    min-height: 44px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: oklch(13% 0.006 270 / 0.88);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.18s var(--ease-expo), color 0.18s var(--ease-expo);
+}
+
+.dock-btn:hover,
+.dock-btn[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.dock-coord {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Scroll-Choreographed 4-Chapter Cinema Story
+   ========================================================================== */
+
+.cinema-scroll {
+    position: relative;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.chapter {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: calc(var(--header-h) + 48px) 152px 116px 36px;
+}
+
+.chapter-inner {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+}
+
+/* Chapter I: Opening Monolith */
+.chapter-hero {
+    min-height: 100svh;
+    align-items: flex-end;
+    padding-bottom: 104px;
+}
+
+.hero-layout {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.hero-copy-block {
+    pointer-events: auto;
+    max-width: 500px;
+}
+
+/* Authored Forge Ignition Reveal (Always Visible Default — Progressive Mask) */
+.display-monument {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 0.90;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    text-wrap: balance;
+}
+
+.display-monument .word-solid {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.15rem, 4.6vw, 4.5rem);
+}
+
+.display-monument .word-accent {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.15rem, 4.6vw, 4.5rem);
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--ink);
+    letter-spacing: -0.03em;
+}
+
+.display-monument .word-accent span {
+    color: var(--accent);
+    -webkit-text-stroke: 0;
+}
+
+.lead-copy {
+    margin: 22px 0 28px;
+    max-width: 38ch;
+    font-size: 1rem;
+    line-height: 1.56;
+    color: var(--ink-secondary);
+    text-wrap: pretty;
+}
+
+.hero-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.scroll-cue {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    padding-bottom: 6px;
+}
+
+.scroll-cue-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+}
+
+.scroll-cue-line {
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+}
+
+/* Chapter II & III: True Asymmetric 2-Column Splits */
+.chapter-right {
+    background: linear-gradient(
+        to left,
+        oklch(13% 0.006 270 / 0.90) 0%,
+        oklch(13% 0.006 270 / 0.66) 40%,
+        transparent 64%
+    );
+}
+
+.chapter-left {
+    background: linear-gradient(
+        to right,
+        oklch(13% 0.006 270 / 0.92) 0%,
+        oklch(13% 0.006 270 / 0.68) 40%,
+        transparent 64%
+    );
+}
+
+.chapter-right .editorial-column {
+    margin-left: auto;
+    width: 100%;
+    max-width: 440px;
+    pointer-events: auto;
+}
+
+.chapter-left .editorial-column {
+    margin-right: auto;
+    width: 100%;
+    max-width: 440px;
+    pointer-events: auto;
+}
+
+.chapter-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+}
+
+.chapter-heading span {
+    color: var(--accent);
+}
+
+.chapter-prose {
+    margin: 18px 0 26px;
+    max-width: 56ch;
+    font-size: 0.96rem;
+    line-height: 1.62;
+    color: var(--ink-secondary);
+    text-wrap: pretty;
+}
+
+.chapter-prose code {
+    font-size: 0.85em;
+    color: var(--ink);
+    padding: 1px 5px;
+    background: var(--surface-raised);
+    border-radius: 2px;
+}
+
+/* Pure Typographic Cinema Telemetry Ledger */
+.cinema-ledger {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+}
+
+.cinema-ledger-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule);
+}
+
+.cinema-ledger-row dt {
+    font-size: 0.86rem;
+    color: var(--ink-secondary);
+}
+
+.cinema-ledger-row dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+/* Chapter III (Forge): Accessible Radiogroup + Precision Sliders + Inline Save/Reset */
+.material-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--rule);
+    margin-bottom: 22px;
+}
+
+.material-row {
+    width: 100%;
+    min-height: 54px;
+    text-align: left;
+    padding: 11px 0;
+    border: 0;
+    border-bottom: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    transition: padding-left 0.22s var(--ease-expo), color 0.18s var(--ease-expo);
+}
+
+.material-row:hover {
+    padding-left: 6px;
+}
+
+.material-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.material-row strong {
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.material-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-control);
+    transition: background 0.18s var(--ease-expo), border-color 0.18s var(--ease-expo);
+}
+
+.material-row[aria-checked="true"] strong {
+    color: var(--accent);
+}
+
+.material-row[aria-checked="true"] .material-indicator {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.material-row-desc {
+    font-size: 0.82rem;
+    color: var(--ink-secondary);
+}
+
+.tuning-strip {
+    display: grid;
+    gap: 8px;
+}
+
+.tuning-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.tuning-label label {
+    font-size: 0.84rem;
+    color: var(--ink-secondary);
+}
+
+.tuning-label output {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+/* Precision Machined Sliders (44px Touch Height, >= 3:1 Track Contrast) */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 44px;
+    margin: -4px 0 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--border-control);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -7px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--ground);
+    box-shadow: 0 0 0 1px var(--accent);
+    transition: transform 0.14s var(--ease-expo);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+    transform: scale(1.18);
+}
+
+input[type="range"]::-moz-range-track {
+    height: 2px;
+    background: var(--border-control);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--ground);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.forge-actions {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.save-feedback {
+    margin: 12px 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    min-height: 1.4em;
+}
+
+/* Chapter IV: Studio Closing Frame */
+.chapter-closing {
+    min-height: 88vh;
+    align-items: flex-end;
+    padding-bottom: 92px;
+    background: linear-gradient(
+        to top,
+        oklch(13% 0.006 270 / 0.94) 0%,
+        oklch(13% 0.006 270 / 0.68) 46%,
+        transparent 74%
+    );
+}
+
+.closing-layout {
+    pointer-events: auto;
+    max-width: 680px;
+}
+
+.closing-heading {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+}
+
+.closing-heading span {
+    color: var(--accent);
+}
+
+.closing-copy {
+    margin: 18px 0 28px;
+    max-width: 48ch;
+    font-size: 0.98rem;
+    color: var(--ink-secondary);
+    text-wrap: pretty;
+}
+
+.closing-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ==========================================================================
+   Responsive Studio Breakpoints (Zero Clipping, Zero Overlap, 44px Targets)
+   ========================================================================== */
+
+@media (max-width: 1120px) {
+    .chapter {
+        padding: calc(var(--header-h) + 44px) 136px 136px 28px;
+    }
+}
+
+@media (max-width: 900px) {
+    .mobile-progress {
+        display: block;
+    }
+
+    .chapter-rail {
+        display: none;
+    }
+
+    .chapter {
+        padding: calc(var(--header-h) + 32px) 18px 128px;
+    }
+
+    .chapter-right,
+    .chapter-left {
+        background: linear-gradient(
+            to top,
+            oklch(13% 0.006 270 / 0.94) 0%,
+            oklch(13% 0.006 270 / 0.72) 58%,
+            transparent 100%
+        );
+        align-items: flex-end;
+    }
+
+    .chapter-right .editorial-column,
+    .chapter-left .editorial-column {
+        margin: 0;
+        max-width: 56ch;
+    }
+
+    .scroll-cue {
+        display: none;
+    }
+
+    .studio-dock {
+        padding: 12px 18px 10px;
+    }
+
+    .studio-dock::before {
+        left: 18px;
+        right: 18px;
+    }
+
+    .dock-coord {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .display-monument .word-solid,
+    .display-monument .word-accent {
+        font-size: clamp(1.95rem, 9.2vw, 2.8rem);
+    }
+
+    .studio-dock {
+        flex-wrap: nowrap;
+        gap: 10px;
+    }
+
+    .dock-materials {
+        gap: 10px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        min-width: 0;
+        padding-right: 4px;
+    }
+
+    .dock-materials::-webkit-scrollbar {
+        display: none;
+    }
+
+    .dock-tab {
+        font-size: 0.78rem;
+    }
+
+    .dock-btn {
+        padding: 0 11px;
+        font-size: 0.76rem;
+    }
+}
