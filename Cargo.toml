@@ -1,9 +1,38 @@
+[package]
+name = "rustwithnerco"
+version = "0.1.0"
+edition = "2021"
+description = "Rust + Axum WebSocket multiplayer server and WebAssembly physics starter for RustwithNerco"
+
+[lib]
+name = "rustwithnerco_physics"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "rustwithnerco"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wasm-bindgen = "0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
 [workspace]
 resolver = "2"
 members = [
+    ".",
     "crates/server",
     "crates/wasm-sim",
 ]
+default-members = ["."]
 
 [profile.release]
 opt-level = 3
