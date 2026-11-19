@@ -1,0 +1,16 @@
+{
+  "name": "RustwithNerco",
+  "short_name": "RustwithNerco",
+  "description": "Digital metallurgy in real time — zero-copy Rust WebAssembly 3D studio on Axum.",
+  "start_url": "../",
+  "display": "standalone",
+  "background_color": "#08080a",
+  "theme_color": "#08080a",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

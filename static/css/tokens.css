@@ -1,0 +1,623 @@
+/* ==========================================================================
+   RustwithNerco — Core Tokens, Browser Surfaces, Header, Footer & Dialogs
+   WCAG AA >= 4.5:1 text contrast & >= 3.0:1 UI boundary contrast verified
+   ========================================================================== */
+
+:root {
+    --ground: oklch(13% 0.006 270);
+    --surface: oklch(16.5% 0.007 265);
+    --surface-raised: oklch(21% 0.008 260);
+    --surface-code: oklch(11% 0.005 270);
+
+    --ink: oklch(95% 0.009 78);
+    --ink-secondary: oklch(78% 0.010 74);
+    --ink-muted: oklch(68% 0.011 72);
+
+    --accent: oklch(64% 0.195 34);
+    --accent-hover: oklch(69% 0.195 36);
+    --accent-ink: oklch(12% 0.008 45);
+
+    --rule: oklch(95% 0.009 78 / 0.14);
+    --border-control: oklch(54% 0.010 70);
+    --warn: oklch(78% 0.14 75);
+
+    --font-display: "Syne", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+
+    --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --header-h: 60px;
+    --radius: 2px;
+    color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+html {
+    scroll-behavior: smooth;
+    background: var(--ground);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    caret-color: var(--accent);
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+a {
+    color: inherit;
+    text-underline-offset: 0.24em;
+    text-decoration-thickness: 1px;
+}
+
+code,
+pre,
+kbd,
+output {
+    font-family: var(--font-mono);
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* Skip to content link (WCAG 2.4.1) */
+.skip-link {
+    position: fixed;
+    top: -100px;
+    left: 16px;
+    z-index: 200;
+    padding: 12px 18px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: top 0.18s var(--ease-expo);
+}
+
+.skip-link:focus {
+    top: 12px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--ground);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-control);
+    border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* Subtle cinema film grain finish */
+.film-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0.028;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ==========================================================================
+   Cinema Perimeter Header (Unified: Brand + 2 Routes + Telemetry + Sound/?)
+   ========================================================================== */
+
+.cinema-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-h);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 36px;
+    border-bottom: 1px solid var(--rule);
+    background: oklch(13% 0.006 270 / 0.92);
+}
+
+.header-cluster {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-width: 0;
+}
+
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.brand-word {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+}
+
+.cinema-nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0 4px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.18s var(--ease-expo);
+}
+
+.nav-link:hover,
+.nav-link.is-current {
+    color: var(--ink);
+}
+
+.nav-link.is-current::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -9px;
+    height: 2px;
+    background: var(--accent);
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-telemetry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+}
+
+.tel-div {
+    color: var(--border-control);
+}
+
+.tel-accent {
+    color: var(--accent);
+}
+
+.tel-item.is-warn {
+    color: var(--warn);
+}
+
+.hdr-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.18s var(--ease-expo), border-color 0.18s var(--ease-expo), background 0.18s var(--ease-expo);
+}
+
+.hdr-icon-btn:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+    background: var(--surface);
+}
+
+.hdr-icon-btn[aria-pressed="true"] {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ==========================================================================
+   Shared Cinema Buttons (Strict >= 44px Touch Height, >= 3:1 Border Contrast)
+   ========================================================================== */
+
+.btn-cinema-primary,
+.btn-cinema-line,
+.btn-cinema-quiet {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background 0.18s var(--ease-expo),
+        border-color 0.18s var(--ease-expo),
+        color 0.18s var(--ease-expo),
+        transform 0.12s var(--ease-expo);
+}
+
+.btn-cinema-primary {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.btn-cinema-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.btn-cinema-primary:disabled,
+.btn-cinema-line:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
+.btn-cinema-line {
+    border: 1px solid var(--border-control);
+    background: oklch(13% 0.006 270 / 0.82);
+    color: var(--ink);
+}
+
+.btn-cinema-line:hover {
+    border-color: var(--ink);
+    background: var(--surface-raised);
+}
+
+.btn-cinema-line[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-cinema-quiet {
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+.btn-cinema-quiet:hover {
+    color: var(--accent);
+}
+
+.btn-cinema-primary:active,
+.btn-cinema-line:active {
+    transform: translateY(1px);
+}
+
+/* ==========================================================================
+   Top-Level Contentinfo Footer (Outside <main> for WCAG Landmarks)
+   ========================================================================== */
+
+.site-footer {
+    position: relative;
+    z-index: 20;
+    border-top: 1px solid var(--rule);
+    background: var(--ground);
+    padding: 24px 36px 88px;
+}
+
+.surface-monograph .site-footer {
+    padding-bottom: 32px;
+}
+
+.footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+}
+
+.footer-links a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--ink-secondary);
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: var(--accent);
+}
+
+/* ==========================================================================
+   Keyboard Shortcut Reference Dialog
+   ========================================================================== */
+
+.shortcut-dialog {
+    padding: 0;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    width: min(420px, calc(100vw - 32px));
+    box-shadow: 0 24px 64px oklch(0% 0 0 / 0.65);
+}
+
+.shortcut-dialog::backdrop {
+    background: oklch(8% 0.004 270 / 0.74);
+}
+
+.dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.dialog-head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+.dialog-close {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--ink-secondary);
+    cursor: pointer;
+}
+
+.dialog-close:hover {
+    color: var(--ink);
+    border-color: var(--border-control);
+}
+
+.shortcut-grid {
+    margin: 0;
+    padding: 14px 22px 22px;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.86rem;
+}
+
+.shortcut-row:last-child {
+    border-bottom: 0;
+}
+
+.shortcut-row dt {
+    color: var(--ink-secondary);
+}
+
+.shortcut-row dd {
+    margin: 0;
+}
+
+.shortcut-row kbd {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius);
+    background: var(--ground);
+    color: var(--ink);
+    font-size: 0.78rem;
+}
+
+/* ==========================================================================
+   Custom Magnetic Sculpting Reticle (Pointer: Fine Devices Only)
+   ========================================================================== */
+
+.cursor-reticle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border-radius: 50%;
+    border: 1px solid oklch(95% 0.009 78 / 0.42);
+    pointer-events: none;
+    z-index: 90;
+    opacity: 0;
+    transform: translate3d(-100px, -100px, 0);
+    transition: width 0.2s var(--ease-expo), height 0.2s var(--ease-expo), margin 0.2s var(--ease-expo), border-color 0.2s var(--ease-expo), opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cursor-reticle.is-visible {
+    opacity: 1;
+}
+
+.cursor-reticle.is-on-mesh {
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    border-color: var(--accent);
+}
+
+.cursor-reticle.is-dragging {
+    width: 42px;
+    height: 42px;
+    margin: -21px 0 0 -21px;
+    border-color: var(--ink);
+}
+
+.reticle-tag {
+    position: absolute;
+    left: calc(100% + 10px);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.cursor-reticle.is-on-mesh .reticle-tag {
+    opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .cursor-reticle {
+        display: none;
+    }
+}
+
+@media (max-width: 900px) {
+    .cinema-header {
+        padding: 0 18px;
+    }
+
+    .header-cluster {
+        gap: 14px;
+    }
+
+    .cinema-nav {
+        gap: 12px;
+    }
+
+    .hide-sm {
+        display: none;
+    }
+
+    .site-footer {
+        padding: 20px 18px 88px;
+    }
+}
+
+@media (max-width: 640px) {
+    .cinema-header {
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .header-cluster {
+        gap: 10px;
+    }
+
+    .cinema-nav {
+        gap: 8px;
+    }
+
+    .nav-link {
+        font-size: 0.8rem;
+        min-width: auto;
+        padding: 0 4px;
+    }
+
+    .header-telemetry,
+    #btn-open-shortcuts {
+        display: none;
+    }
+
+    .brand-word {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+    }
+
+    .hdr-icon-btn {
+        padding: 0 10px;
+    }
+
+    .hdr-btn-text {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}

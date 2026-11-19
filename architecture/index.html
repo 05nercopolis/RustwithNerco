@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-static="true">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RustwithNerco — Digital metallurgy in real time. Sculpted 3D WebGL geometry deformed vertex-by-vertex inside zero-copy Rust WebAssembly on Axum.">
+    <meta name="theme-color" content="#08080a">
+    <meta property="og:title" content="Architecture — RustwithNerco">
+    <meta property="og:description" content="Zero-copy Rust WebAssembly 3D mesh morphing, authored GLSL metal shaders, and selective HDR bloom served by Axum + Askama.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="../static/og-card.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="../static/og-card.svg">
+    <title>Architecture — RustwithNerco</title>
+    <link rel="icon" type="image/svg+xml" href="../static/favicon.svg">
+    <link rel="apple-touch-icon" href="../static/favicon.svg">
+    <link rel="manifest" href="../static/manifest.webmanifest">
+    <link rel="stylesheet" href="../static/css/fonts.css">
+    <link rel="stylesheet" href="../static/css/tokens.css">
+    
+    <link rel="stylesheet" href="../static/css/monograph.css">
+    
+    
+</head>
+<body class="surface-monograph">
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <header class="cinema-header">
+        <div class="header-cluster">
+            <a href="../" class="brand-mark" aria-label="RustwithNerco home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.3"/>
+                    <ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(-32 12 12)" stroke="var(--accent)" stroke-width="1.6"/>
+                    <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+                </svg>
+                <span class="brand-word">RUSTWITHNERCO</span>
+            </a>
+
+            <nav class="cinema-nav" aria-label="Primary navigation">
+                <a href="../" class="nav-link " >Studio</a>
+                <a href="./" class="nav-link is-current" aria-current="page">Architecture</a>
+            </nav>
+        </div>
+
+        <div class="header-controls">
+            <div class="header-telemetry">
+                
+                <span class="tel-item">v0.1.0</span>
+                <span class="tel-div" aria-hidden="true">/</span>
+                <span class="tel-item ">wasm 40.7 KB</span>
+                
+            </div>
+
+            
+        </div>
+    </header>
+
+    <div class="film-grain" aria-hidden="true"></div>
+
+    <main id="main-content" tabindex="-1">
+        
+<article class="monograph">
+    <header class="monograph-head">
+        <h1 class="monograph-title">System <span>Architecture</span></h1>
+        <p class="monograph-lead">
+            A single Rust Cargo workspace uniting an async Axum and Askama server with a
+            zero-dependency WebAssembly 3D mesh, normal, and stress-energy kernel rendered under a
+            procedural studio lighting rig and selective HDR bloom.
+        </p>
+
+        <dl class="spec-strip">
+            <div class="spec-item">
+                <dt>Release</dt>
+                <dd>v0.1.0</dd>
+            </div>
+            <div class="spec-item">
+                <dt>WASM Kernel</dt>
+                <dd>40.7 KB</dd>
+            </div>
+            <div class="spec-item">
+                <dt>Mesh Topology</dt>
+                <dd>8,385 v / 16,384 tris</dd>
+            </div>
+            <div class="spec-item">
+                <dt>Requests Served</dt>
+                <dd>86</dd>
+            </div>
+        </dl>
+    </header>
+
+    <section class="editorial-row">
+        <div class="editorial-label">
+            <h2>Zero-Copy Kernel</h2>
+            <p>Deforming 16,384 triangles, smooth normals, and strain energy inside linear memory.</p>
+        </div>
+        <div class="editorial-content">
+            <p>
+                <code>crates/wasm-sim</code> compiles directly to <code>wasm32-unknown-unknown</code> as a
+                zero-dependency <code>cdylib</code>. A cyclic <code>128 × 64</code> parametric manifold morphs
+                smoothly across four 3D forms while updating contiguous <code>positions</code>,
+                <code>normals</code>, and per-vertex <code>energies</code> buffers read straight into Three.js GLSL.
+            </p>
+
+            <figure class="diagram-frame">
+                <svg viewBox="0 0 740 176" class="mem-diagram" role="img" aria-label="Zero-copy memory flow from Rust wasm-sim through WebAssembly linear memory directly into Three.js GLSL shaders">
+                    <rect x="8" y="18" width="198" height="114" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.34" stroke-width="1.2"/>
+                    <text x="24" y="46" class="svg-title">crates/wasm-sim</text>
+                    <text x="24" y="70" class="svg-mono">positions: Vec&lt;f32&gt;</text>
+                    <text x="24" y="90" class="svg-mono">normals:   Vec&lt;f32&gt;</text>
+                    <text x="24" y="110" class="svg-mono">energies:  Vec&lt;f32&gt;</text>
+
+                    <line x1="206" y1="75" x2="258" y2="75" stroke="var(--accent)" stroke-width="1.6"/>
+                    <polygon points="258,70 268,75 258,80" fill="var(--accent)"/>
+
+                    <rect x="272" y="18" width="204" height="114" rx="3" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+                    <text x="288" y="46" class="svg-title">WebAssembly.Memory</text>
+                    <text x="288" y="70" class="svg-mono">mesh_positions_ptr()</text>
+                    <text x="288" y="90" class="svg-mono">mesh_energies_ptr()</text>
+                    <text x="288" y="114" class="svg-accent">Zero copy · shared buffer</text>
+
+                    <line x1="476" y1="75" x2="528" y2="75" stroke="var(--accent)" stroke-width="1.6"/>
+                    <polygon points="528,70 538,75 528,80" fill="var(--accent)"/>
+
+                    <rect x="542" y="18" width="190" height="114" rx="3" fill="none" stroke="currentColor" stroke-opacity="0.34" stroke-width="1.2"/>
+                    <text x="558" y="46" class="svg-title">Three.js WebGL2</text>
+                    <text x="558" y="70" class="svg-mono">Float32Array views</text>
+                    <text x="558" y="90" class="svg-mono">GLSL Brushed PBR</text>
+                    <text x="558" y="114" class="svg-note">HDR Bloom + X-Ray</text>
+
+                    <text x="8" y="160" class="svg-caption">Fig. 1 — Contiguous f32 vertex, normal, and stress buffers shared zero-copy from Rust WASM to WebGL2.</text>
+                </svg>
+            </figure>
+
+            <pre class="code-sheet"><code>// Bound once after mesh_init() — zero allocations in the render loop
+const pos = new Float32Array(memory.buffer, mesh_positions_ptr(), verts * 3);
+const nrm = new Float32Array(memory.buffer, mesh_normals_ptr(),   verts * 3);
+const nrg = new Float32Array(memory.buffer, mesh_energies_ptr(),  verts);
+
+mesh_step(dt, scrollMorph);
+geometry.attributes.position.needsUpdate = true;
+geometry.attributes.normal.needsUpdate   = true;
+geometry.attributes.aEnergy.needsUpdate  = true;</code></pre>
+        </div>
+    </section>
+
+    <section class="editorial-row">
+        <div class="editorial-label">
+            <h2>Axum &amp; Askama</h2>
+            <p>Compile-time checked templates, Brotli/Gzip compression, and shared state.</p>
+        </div>
+        <div class="editorial-content">
+            <p>
+                <code>crates/server</code> serves Askama SSR HTML with live Brotli/Gzip response compression,
+                streams the release <code>.wasm</code> binary with explicit <code>application/wasm</code> headers,
+                and persists active sculpture settings inside <code>Arc&lt;RwLock&lt;ActiveConfig&gt;&gt;</code>.
+            </p>
+
+            <div class="table-wrap">
+                <table class="route-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Method</th>
+                            <th scope="col">Route</th>
+                            <th scope="col">Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="http-verb">GET</span></td>
+                            <td><code>/</code></td>
+                            <td>Scroll-choreographed 3D WebGL metallurgy studio</td>
+                        </tr>
+                        <tr>
+                            <td><span class="http-verb">GET</span></td>
+                            <td><code>/architecture</code></td>
+                            <td>System specification and live Axum API inspector</td>
+                        </tr>
+                        <tr>
+                            <td><span class="http-verb">GET</span></td>
+                            <td><code>/api/health</code></td>
+                            <td>Uptime, request count, mesh resolution, and WASM size</td>
+                        </tr>
+                        <tr>
+                            <td><span class="http-verb">GET</span></td>
+                            <td><code>/api/presets</code></td>
+                            <td>Surface material finishes and active server configuration</td>
+                        </tr>
+                        <tr>
+                            <td><span class="http-verb is-write">POST</span></td>
+                            <td><code>/api/config</code></td>
+                            <td>Validate, clamp, and persist sculpture material &amp; physics</td>
+                        </tr>
+                        <tr>
+                            <td><span class="http-verb">GET</span></td>
+                            <td><code>/wasm/rustwithnerco_wasm.wasm</code></td>
+                            <td>Compiled Rust WebAssembly 3D mesh &amp; stress kernel</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="editorial-row">
+        <div class="editorial-label">
+            <h2>Surface Finishes</h2>
+            <p>Authored GLSL micro-grain shaders calibrated for the procedural HDR rig.</p>
+        </div>
+        <div class="editorial-content">
+            <dl class="field-catalog">
+                
+                <div class="catalog-entry">
+                    <dt>Forged Obsidian</dt>
+                    <dd>
+                        <span>Anisotropic volcanic chrome with molten copper stress veins</span>
+                        <span class="catalog-meta">speed 1x · turbulence 0.95 · anisotropic clearcoat</span>
+                    </dd>
+                </div>
+                
+                <div class="catalog-entry">
+                    <dt>Molten Oxide</dt>
+                    <dd>
+                        <span>Micro-brushed forged copper with live incandescent fracture glow</span>
+                        <span class="catalog-meta">speed 1.1x · turbulence 1.15 · anisotropic clearcoat</span>
+                    </dd>
+                </div>
+                
+                <div class="catalog-entry">
+                    <dt>Liquid Mercury</dt>
+                    <dd>
+                        <span>Mirror-grade alloy reflecting studio softboxes with prismatic edges</span>
+                        <span class="catalog-meta">speed 0.9x · turbulence 0.8 · anisotropic clearcoat</span>
+                    </dd>
+                </div>
+                
+                <div class="catalog-entry">
+                    <dt>WASM Topology</dt>
+                    <dd>
+                        <span>Exposed 16,384-triangle lattice deformed live in Rust linear memory</span>
+                        <span class="catalog-meta">speed 1x · turbulence 1 · exposed lattice</span>
+                    </dd>
+                </div>
+                
+            </dl>
+        </div>
+    </section>
+
+    <section class="editorial-row">
+        <div class="editorial-label">
+            <h2>Live API Inspector</h2>
+            <p>Query or mutate the running localhost Axum instance directly.</p>
+        </div>
+        <div class="editorial-content">
+            <div class="probe-controls">
+                <button type="button" class="btn-cinema-line" data-method="GET" data-endpoint="../api/health.json" aria-pressed="false">GET /api/health</button>
+                <button type="button" class="btn-cinema-line" data-method="GET" data-endpoint="../api/presets.json" aria-pressed="false">GET /api/presets</button>
+                <button type="button" class="btn-cinema-line" data-method="LOCAL" data-endpoint="../api/presets.json" aria-pressed="false">Local Config Preview</button>
+                <a href="../" class="btn-cinema-primary">Return to Studio</a>
+            </div>
+            <pre class="code-sheet probe-output" id="api-console-output" aria-live="polite">// Select an endpoint above to inspect live JSON from Axum.</pre>
+        </div>
+    </section>
+</article>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>RustwithNerco v0.1.0 — Axum 0.8 · Askama · Rust wasm32 · Three.js WebGL2</span>
+            <div class="footer-links">
+                <a href="../">Studio</a>
+                <a href="./">Architecture</a>
+                <a href="../api/health.json" target="_blank" rel="noopener noreferrer">Health JSON (new tab)</a>
+            </div>
+        </div>
+    </footer>
+
+    
+
+    
+<script>
+const probeBtns = Array.from(document.querySelectorAll("[data-endpoint]"));
+probeBtns.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+        const ep = btn.getAttribute("data-endpoint");
+        const method = btn.getAttribute("data-method") || "GET";
+        const out = document.getElementById("api-console-output");
+        probeBtns.forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+        out.textContent = `// ${method} ${ep}...`;
+        const t0 = performance.now();
+        try {
+            if (method === "LOCAL") { const saved = localStorage.getItem("rwn-config") || JSON.stringify({ material_slug: "obsidian", speed: 1.0, turbulence: 0.95, scale: 1.0, wireframe: false }); out.textContent = "// Static GitHub Pages Mode (localStorage)\n" + JSON.stringify(JSON.parse(saved), null, 2); return; } const opts = method === "POST"
+                ? {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        material_slug: "obsidian",
+                        speed: 1.0,
+                        turbulence: 0.95,
+                        scale: 1.0,
+                        wireframe: false
+                    })
+                }
+                : { method: "GET" };
+            const res = await fetch(ep, opts);
+            const json = await res.json();
+            const ms = (performance.now() - t0).toFixed(2);
+            out.textContent = `// HTTP ${res.status} · ${ms} ms · ${method} ${ep}\n` + JSON.stringify(json, null, 2);
+        } catch (err) {
+            out.textContent = `// Could not reach ${ep}. Ensure the local Axum server is running and retry.\n// Detail: ${err.message || err}`;
+        }
+    });
+});
+</script>
+
+</body>
+</html>

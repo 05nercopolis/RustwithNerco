@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en" data-static="true" data-wasm-url="./static/wasm/rustwithnerco_wasm.wasm">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RustwithNerco — Digital metallurgy in real time. Sculpted 3D WebGL geometry deformed vertex-by-vertex inside zero-copy Rust WebAssembly on Axum.">
+    <meta name="theme-color" content="#08080a">
+    <meta property="og:title" content="RustwithNerco — Digital Metallurgy Studio">
+    <meta property="og:description" content="Zero-copy Rust WebAssembly 3D mesh morphing, authored GLSL metal shaders, and selective HDR bloom served by Axum + Askama.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./static/og-card.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="./static/og-card.svg">
+    <title>RustwithNerco — Sculpted Rust WASM &amp; WebGL Studio</title>
+    <link rel="icon" type="image/svg+xml" href="./static/favicon.svg">
+    <link rel="apple-touch-icon" href="./static/favicon.svg">
+    <link rel="manifest" href="./static/manifest.webmanifest">
+    <link rel="stylesheet" href="./static/css/fonts.css">
+    <link rel="stylesheet" href="./static/css/tokens.css">
+    
+    <link rel="stylesheet" href="./static/css/studio.css">
+    
+    
+<script type="importmap">
+{
+    "imports": {
+        "three": "./static/vendor/three/three.module.min.js",
+        "three/addons/": "./static/vendor/three/addons/"
+    }
+}
+</script>
+
+</head>
+<body class="surface-cinema">
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <header class="cinema-header">
+        <div class="header-cluster">
+            <a href="./" class="brand-mark" aria-label="RustwithNerco home">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.3"/>
+                    <ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(-32 12 12)" stroke="var(--accent)" stroke-width="1.6"/>
+                    <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+                </svg>
+                <span class="brand-word">RUSTWITHNERCO</span>
+            </a>
+
+            <nav class="cinema-nav" aria-label="Primary navigation">
+                <a href="./" class="nav-link is-current" aria-current="page">Studio</a>
+                <a href="./architecture/" class="nav-link " >Architecture</a>
+            </nav>
+        </div>
+
+        <div class="header-controls">
+            <div class="header-telemetry">
+                
+                <span class="tel-item" id="hdr-fps">-- fps</span>
+                <span class="tel-div" aria-hidden="true">/</span>
+                <span class="tel-item tel-accent" id="hdr-wasm-ms">-- ms</span>
+                <span class="tel-div hide-sm" aria-hidden="true">/</span>
+                <span class="tel-item hide-sm " id="hdr-wasm-size">wasm 40.7 KB</span>
+                
+            </div>
+
+            
+            <button type="button" class="hdr-icon-btn" id="btn-audio-toggle" aria-pressed="false" aria-label="Toggle forge resonance audio (muted by default)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 9.5v5h4l5 4V5.5l-5 4H4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path id="audio-wave-on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" style="display:none"/>
+                    <path id="audio-wave-off" d="M17 9.5l5 5M22 9.5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <span class="hdr-btn-text" id="audio-label">Muted</span>
+            </button>
+
+            <button type="button" class="hdr-icon-btn" id="btn-open-shortcuts" aria-label="Keyboard shortcuts and gesture guide">
+                <span aria-hidden="true">?</span>
+                <span class="hdr-btn-text">Keys</span>
+            </button>
+            
+        </div>
+    </header>
+
+    <div class="film-grain" aria-hidden="true"></div>
+
+    <main id="main-content" tabindex="-1">
+        
+<!-- Fixed full-bleed WebGL2 PBR + Selective HDR Bloom + Rust WASM Stage -->
+<div id="webgl-stage" class="webgl-stage" role="img" aria-label="Interactive sculpted metallic three-dimensional monolith deformed in real time by Rust WebAssembly. Drag to orbit or tap to strike a molten surface wave."></div>
+
+<!-- Graceful WebGL / WASM Error Recovery Fallback -->
+<div class="stage-fallback" id="stage-fallback" hidden role="alert">
+    <div class="fallback-box">
+        <h2>3D Forge Unavailable</h2>
+        <p id="stage-fallback-msg">WebGL2 or the Rust WebAssembly kernel could not initialize in this browser context.</p>
+        <div class="fallback-actions">
+            <button type="button" class="btn-cinema-primary" id="btn-retry-stage">Retry Studio</button>
+            <a href="./architecture/" class="btn-cinema-line">Read Architecture Spec</a>
+        </div>
+    </div>
+</div>
+
+<!-- Hairline Mobile Scroll Progress -->
+<div class="mobile-progress" aria-hidden="true">
+    <div class="mobile-progress-fill" id="mobile-progress-fill"></div>
+</div>
+
+<!-- Draggable WASM X-Ray Split Curtain -->
+<div class="xray-divider" id="xray-divider" aria-hidden="true">
+    <button
+        type="button"
+        class="xray-handle"
+        id="xray-handle"
+        role="slider"
+        aria-label="Drag WASM X-Ray split curtain between forged PBR metal and raw Rust triangle topology"
+        aria-valuemin="10"
+        aria-valuemax="90"
+        aria-valuenow="52"
+    >
+        <span class="xray-tag-metal">PBR Metal</span>
+        <span aria-hidden="true">||</span>
+        <span class="xray-tag-wasm">Rust WASM</span>
+    </button>
+</div>
+
+<!-- Magnetic Sculpting Cursor Reticle (Desktop Pointer Only) -->
+<div class="cursor-reticle" id="cursor-reticle" aria-hidden="true">
+    <span class="reticle-tag" id="reticle-tag">Strike / Drag</span>
+</div>
+
+<!-- Live Screen-Reader Announcement Region -->
+<div class="skip-link" id="sr-announcer" role="status" aria-live="polite" style="left:-9999px;top:auto;position:fixed"></div>
+
+<!-- Scroll-choreographed 4-Chapter Cinema Story (First in DOM for clean Tab Order) -->
+<div class="cinema-scroll" id="cinema-scroll">
+
+    <!-- Chapter I: Monolith -->
+    <section class="chapter chapter-hero" id="chapter-monolith" data-chapter="0">
+        <div class="chapter-inner hero-layout">
+            <div class="hero-copy-block">
+                <h1 class="display-monument">
+                    <span class="word-solid">RUSTWITH</span>
+                    <span class="word-accent">NERCO<span>.</span></span>
+                </h1>
+                <p class="lead-copy">
+                    Digital metallurgy in real time. Sculpted geometry forged in bare-metal Rust,
+                    shaped by light, gravity, and touch.
+                </p>
+                <div class="hero-cta-row">
+                    <a href="#chapter-forge" class="btn-cinema-primary">Enter the Forge</a>
+                    <button type="button" class="btn-cinema-line" id="btn-hero-xray" aria-pressed="false">WASM X-Ray Split</button>
+                </div>
+            </div>
+
+            <div class="scroll-cue" aria-hidden="true">
+                <span class="scroll-cue-label">Scroll to transform</span>
+                <span class="scroll-cue-line"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter II: Kernel (Right column copy, Left stage Twisted Torus-Knot) -->
+    <section class="chapter chapter-right" id="chapter-kernel" data-chapter="1">
+        <div class="chapter-inner">
+            <div class="editorial-column">
+                <h2 class="chapter-heading">Zero-copy <span>memory.</span></h2>
+                <p class="chapter-prose">
+                    Every scroll increment morphs <code>crates/wasm-sim</code> continuously across
+                    four analytical 3D forms, recomputing outward normals and per-vertex strain energy
+                    directly inside WebAssembly linear memory without allocating a single byte in JS.
+                </p>
+
+                <dl class="cinema-ledger">
+                    <div class="cinema-ledger-row">
+                        <dt>Live vertices</dt>
+                        <dd id="stat-verts">8,385</dd>
+                    </div>
+                    <div class="cinema-ledger-row">
+                        <dt>Deformed triangles</dt>
+                        <dd id="stat-tris">16,384</dd>
+                    </div>
+                    <div class="cinema-ledger-row">
+                        <dt>Rust WASM compute</dt>
+                        <dd id="stat-wasm-step">-- ms</dd>
+                    </div>
+                    <div class="cinema-ledger-row">
+                        <dt>Surface strain</dt>
+                        <dd id="stat-energy">0.00</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter III: Forge (Left column material studio, Right stage Crystalline Core) -->
+    <section class="chapter chapter-left" id="chapter-forge" data-chapter="2">
+        <div class="chapter-inner">
+            <div class="editorial-column">
+                <h2 class="chapter-heading">Forged <span>surfaces.</span></h2>
+                <p class="chapter-prose">
+                    Micro-brushed anisotropic shaders, procedural studio softboxes, and live Rust
+                    stress veins that ignite incandescent copper wherever your cursor strikes.
+                </p>
+
+                <div class="material-list" id="material-radiogroup" role="radiogroup" aria-label="Sculpture surface finish">
+                    
+                    <button
+                        type="button"
+                        class="material-row"
+                        role="radio"
+                        tabindex="-1"
+                        aria-checked="false"
+                        data-material="obsidian"
+                        data-speed="1"
+                        data-turbulence="0.95"
+                        data-scale="1"
+                        data-wireframe="false"
+                    >
+                        <span class="material-row-head">
+                            <strong>Forged Obsidian</strong>
+                            <span class="material-indicator" aria-hidden="true"></span>
+                        </span>
+                        <span class="material-row-desc">Anisotropic volcanic chrome with molten copper stress veins</span>
+                    </button>
+                    
+                    <button
+                        type="button"
+                        class="material-row"
+                        role="radio"
+                        tabindex="-1"
+                        aria-checked="false"
+                        data-material="molten-oxide"
+                        data-speed="1.1"
+                        data-turbulence="1.15"
+                        data-scale="1.02"
+                        data-wireframe="false"
+                    >
+                        <span class="material-row-head">
+                            <strong>Molten Oxide</strong>
+                            <span class="material-indicator" aria-hidden="true"></span>
+                        </span>
+                        <span class="material-row-desc">Micro-brushed forged copper with live incandescent fracture glow</span>
+                    </button>
+                    
+                    <button
+                        type="button"
+                        class="material-row"
+                        role="radio"
+                        tabindex="-1"
+                        aria-checked="false"
+                        data-material="liquid-mercury"
+                        data-speed="0.9"
+                        data-turbulence="0.8"
+                        data-scale="1"
+                        data-wireframe="false"
+                    >
+                        <span class="material-row-head">
+                            <strong>Liquid Mercury</strong>
+                            <span class="material-indicator" aria-hidden="true"></span>
+                        </span>
+                        <span class="material-row-desc">Mirror-grade alloy reflecting studio softboxes with prismatic edges</span>
+                    </button>
+                    
+                    <button
+                        type="button"
+                        class="material-row"
+                        role="radio"
+                        tabindex="-1"
+                        aria-checked="false"
+                        data-material="topology"
+                        data-speed="1"
+                        data-turbulence="1"
+                        data-scale="1"
+                        data-wireframe="true"
+                    >
+                        <span class="material-row-head">
+                            <strong>WASM Topology</strong>
+                            <span class="material-indicator" aria-hidden="true"></span>
+                        </span>
+                        <span class="material-row-desc">Exposed 16,384-triangle lattice deformed live in Rust linear memory</span>
+                    </button>
+                    
+                </div>
+
+                <div class="tuning-strip">
+                    <div class="tuning-field">
+                        <div class="tuning-label">
+                            <label for="ctrl-turbulence">Surface turbulence</label>
+                            <output id="val-turbulence" for="ctrl-turbulence">0.95</output>
+                        </div>
+                        <input type="range" id="ctrl-turbulence" min="0.00" max="1.80" step="0.05" value="0.95">
+                    </div>
+
+                    <div class="tuning-field">
+                        <div class="tuning-label">
+                            <label for="ctrl-speed">Kinetic speed</label>
+                            <output id="val-speed" for="ctrl-speed">1.00x</output>
+                        </div>
+                        <input type="range" id="ctrl-speed" min="0.00" max="2.40" step="0.05" value="1.00">
+                    </div>
+
+                    <div class="tuning-field">
+                        <div class="tuning-label">
+                            <label for="ctrl-scale">Sculpture scale</label>
+                            <output id="val-scale" for="ctrl-scale">1.00</output>
+                        </div>
+                        <input type="range" id="ctrl-scale" min="0.70" max="1.35" step="0.05" value="1.00">
+                    </div>
+                </div>
+
+                <div class="forge-actions">
+                    <button type="button" class="btn-cinema-primary" id="btn-save-axum">Save Preset</button>
+                    <button type="button" class="btn-cinema-line" id="btn-reset-defaults">Reset Defaults</button>
+                    <button type="button" class="btn-cinema-line" id="btn-forge-xray" aria-pressed="false">X-Ray Split</button>
+                </div>
+                <p class="save-feedback" id="save-feedback" role="status" aria-live="polite">Server state synced · <span id="stat-reqs">--</span> requests</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter IV: Studio Closing Frame -->
+    <section class="chapter chapter-closing" id="chapter-studio" data-chapter="3">
+        <div class="chapter-inner closing-layout">
+            <h2 class="closing-heading">Code that behaves <span>like matter.</span></h2>
+            <p class="closing-copy">
+                Zero bundlers, zero external runtime CDNs, one Rust workspace shipping from
+                Axum straight into WebGL2 linear memory. Peel back the metal or audit every route.
+            </p>
+
+            <div class="closing-actions">
+                <a href="./architecture/" class="btn-cinema-primary">Inspect Architecture &amp; API</a>
+                <button type="button" class="btn-cinema-line" id="btn-closing-xray" aria-pressed="false">Toggle WASM X-Ray</button>
+                <button type="button" class="btn-cinema-quiet" id="btn-scroll-top">Back to Monolith</button>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<!-- Right-Edge Unified Chapter Rail (After main story in DOM order) -->
+<nav class="chapter-rail" aria-label="Scroll chapters">
+    <div class="rail-track" aria-hidden="true">
+        <div class="rail-fill" id="rail-fill"></div>
+    </div>
+    <button type="button" class="rail-stop is-active" aria-current="location" data-scroll-to="chapter-monolith">Monolith</button>
+    <button type="button" class="rail-stop" data-scroll-to="chapter-kernel">Kernel</button>
+    <button type="button" class="rail-stop" data-scroll-to="chapter-forge">Forge</button>
+    <button type="button" class="rail-stop" data-scroll-to="chapter-studio">Studio</button>
+</nav>
+
+<!-- Smart Bottom Studio Bar (Auto-recedes inside Chapter 3 Forge) -->
+<div class="studio-dock" id="studio-dock" role="toolbar" aria-label="Quick finish and inspection bar">
+    <div class="dock-materials">
+        
+        <button
+            type="button"
+            class="dock-tab"
+            data-material="obsidian"
+            data-speed="1"
+            data-turbulence="0.95"
+            data-scale="1"
+            data-wireframe="false"
+            aria-pressed="false"
+        >Forged Obsidian</button>
+        
+        <button
+            type="button"
+            class="dock-tab"
+            data-material="molten-oxide"
+            data-speed="1.1"
+            data-turbulence="1.15"
+            data-scale="1.02"
+            data-wireframe="false"
+            aria-pressed="false"
+        >Molten Oxide</button>
+        
+        <button
+            type="button"
+            class="dock-tab"
+            data-material="liquid-mercury"
+            data-speed="0.9"
+            data-turbulence="0.8"
+            data-scale="1"
+            data-wireframe="false"
+            aria-pressed="false"
+        >Liquid Mercury</button>
+        
+        <button
+            type="button"
+            class="dock-tab"
+            data-material="topology"
+            data-speed="1"
+            data-turbulence="1"
+            data-scale="1"
+            data-wireframe="true"
+            aria-pressed="false"
+        >WASM Topology</button>
+        
+    </div>
+    <div class="dock-actions">
+        <button type="button" class="dock-btn" id="btn-dock-xray" aria-pressed="false">X-Ray</button>
+        <button type="button" class="dock-btn" id="btn-wave-pulse">Strike</button>
+        <span class="dock-coord" id="dock-morph-readout">Monolith · 0%</span>
+    </div>
+</div>
+
+<script id="initial-config" type="application/json">{"material_slug":"obsidian","speed":1.0,"turbulence":0.95,"scale":1.0,"wireframe":false}</script>
+
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <span>RustwithNerco v0.1.0 — Axum 0.8 · Askama · Rust wasm32 · Three.js WebGL2</span>
+            <div class="footer-links">
+                <a href="./">Studio</a>
+                <a href="./architecture/">Architecture</a>
+                <a href="./api/health.json" target="_blank" rel="noopener noreferrer">Health JSON (new tab)</a>
+            </div>
+        </div>
+    </footer>
+
+    
+    <dialog class="shortcut-dialog" id="shortcut-dialog" aria-labelledby="shortcut-title">
+        <div class="dialog-head">
+            <h2 id="shortcut-title">Studio Instruments</h2>
+            <button type="button" class="dialog-close" id="btn-close-shortcuts" aria-label="Close shortcuts dialog">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <dl class="shortcut-grid">
+            <div class="shortcut-row"><dt>Orbit &amp; inspect sculpture</dt><dd><kbd>Drag</kbd></dd></div>
+            <div class="shortcut-row"><dt>Strike molten wave at cursor</dt><dd><kbd>Click</kbd> / <kbd>P</kbd></dd></div>
+            <div class="shortcut-row"><dt>Toggle WASM X-Ray split curtain</dt><dd><kbd>X</kbd></dd></div>
+            <div class="shortcut-row"><dt>Switch metal finish</dt><dd><kbd>1</kbd>–<kbd>4</kbd></dd></div>
+            <div class="shortcut-row"><dt>Toggle Forge resonance audio</dt><dd><kbd>M</kbd></dd></div>
+            <div class="shortcut-row"><dt>Reset orbit angle</dt><dd><kbd>R</kbd></dd></div>
+            <div class="shortcut-row"><dt>Close dialog or X-Ray curtain</dt><dd><kbd>Esc</kbd></dd></div>
+        </dl>
+    </dialog>
+    
+
+    
+<script type="module" src="./static/js/scene.js"></script>
+
+</body>
+</html>

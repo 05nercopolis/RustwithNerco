@@ -1,0 +1,1 @@
+{"status":"ok","project":"RustwithNerco","version":"0.1.0","uptime_secs":1928,"requests_served":87,"wasm_ready":true,"wasm_size_bytes":41631,"mesh_vertices":8385,"mesh_triangles":16384,"stack":["Rust 2021 Workspace","Axum 0.8 + Tokio","Askama SSR Templates","Zero-Copy Rust WASM 3D Mesh Morph & Normal Kernel","Three.js WebGL2 PBR + Procedural Studio HDR Softbox Rig"]}
